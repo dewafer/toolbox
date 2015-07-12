@@ -1,10 +1,14 @@
 package wyq.toolbox.di;
 
+import static wyq.toolbox.util.LogUtils.logIntentionallyIgnoredCatch;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import wyq.toolbox.util.RetryLookup;
-import wyq.toolbox.util.RetryLookup.LookupFilter;
 import wyq.toolbox.util.RetryLookup.NotFound;
 
 /**
@@ -21,12 +25,14 @@ import wyq.toolbox.util.RetryLookup.NotFound;
  * Created objects will not be cached.
  * 
  * @author dewafer
- * @version 1.2
+ * @version 1.3
  *
  * @param <T>
  *            type of the expected object
  */
 public class ObjectCreator<T> {
+
+	static Logger log = Logger.getLogger(ObjectCreator.class.getCanonicalName());
 
 	private Class<T> mClass;
 	private Object[] mParams;
@@ -82,13 +88,17 @@ public class ObjectCreator<T> {
 
 		// new Object
 		T object = (T) constructor.newInstance(mParams);
+		if (log.isLoggable(Level.FINE)) {
+			log.fine("new " + object + " using " + constructor + " with "
+					+ (mParams == null ? "null" : Arrays.asList(mParams)));
+		}
 
 		return object;
 	}
 
 	public static String DEFAULT_PACKAGE_NAME = ObjectCreator.class.getPackage().getName();
 
-	protected Class<?> findImpl(final Class<T> iface) {
+	protected Class<?> findImpl(Class<T> iface) {
 
 		Package pkg = iface.getPackage();
 		String pkgName = (pkg != null) ? pkg.getName() : DEFAULT_PACKAGE_NAME;
@@ -105,17 +115,15 @@ public class ObjectCreator<T> {
 				pkgName + ".impl." + clsName, pkgName + "." + "Default" + clsName, pkgName + "." + "DefaultHandler" };
 
 		try {
-			implClass = new ClassNameLookup(lookups, new LookupFilter<Class<?>>() {
-
-				@Override
-				public boolean accept(Class<?> found) {
-					return found != null && iface.isAssignableFrom(found);
-				}
-			}).lookup();
+			implClass = new ClassNameLookup(lookups, iface).lookup();
 		} catch (NotFound e) {
 			// ignore
+			logIntentionallyIgnoredCatch(log, e);
 		}
 
+		if (log.isLoggable(Level.FINE)) {
+			log.fine("findImpl[iface=" + iface + ", implClass=" + String.valueOf(implClass) + "]");
+		}
 		return implClass;
 	}
 
@@ -125,12 +133,16 @@ public class ObjectCreator<T> {
 			implClass = Class.forName(classFullName);
 		} catch (ClassNotFoundException e) {
 			// ignore
-			e.printStackTrace();
+			logIntentionallyIgnoredCatch(log, e);
 		}
 		return implClass;
 	}
 
 	protected Constructor<?> findConstructor(Class<?> targetClass, Object[] params) {
+		if (log.isLoggable(Level.FINE)) {
+			log.fine("findConstructor[tarCls=" + targetClass + ", params="
+					+ ((params == null) ? "null" : Arrays.asList(params)) + "]");
+		}
 
 		// prepare parameter types
 		int paramLength = mParams.length;
@@ -148,14 +160,14 @@ public class ObjectCreator<T> {
 			return targetClass.getConstructor(paramTypes);
 		} catch (NoSuchMethodException e) {
 			// ignore match failure
-			e.printStackTrace();
+			logIntentionallyIgnoredCatch(log, e);
 		}
 
 		try {
 			return targetClass.getDeclaredConstructor(paramTypes);
 		} catch (NoSuchMethodException e) {
 			// ignore match failure
-			e.printStackTrace();
+			logIntentionallyIgnoredCatch(log, e);
 		}
 
 		// look for each constructor in the declared constructors of the
@@ -248,22 +260,20 @@ public class ObjectCreator<T> {
 
 	class ClassNameLookup extends RetryLookup<Class<?>, String> {
 
-		public ClassNameLookup(String[] lookups, LookupFilter<Class<?>> filter) {
-			super(lookups, filter);
+		public ClassNameLookup(String[] lookups, Class<?> iface) {
+			super(lookups, new LookupFilter<Class<?>>() {
+
+				@Override
+				public boolean accept(Class<?> found) {
+					return found != null && iface.isAssignableFrom(found);
+				}
+			});
 		}
 
 		@Override
 		public Class<?> tryLookup(String classFullName) {
-			Class<?> implClass = null;
-			try {
-				implClass = Class.forName(classFullName);
-			} catch (ClassNotFoundException e) {
-				// ignore
-				e.printStackTrace();
-			}
-			return implClass;
+			return implLookUp(classFullName);
 		}
 
 	}
-
 }

@@ -1,6 +1,7 @@
 package wyq.toolbox.db;
 
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 import wyq.toolbox.db.DBEngine.DBResult;
 
@@ -12,7 +13,7 @@ import wyq.toolbox.db.DBEngine.DBResult;
  */
 public interface DBEngineHandler {
 
-	public abstract void prepareParameter(PreparedStatement stmt);
+	public abstract void prepareParameter(PreparedStatement stmt) throws SQLException;
 
 	public abstract void processResult(DBResult result);
 

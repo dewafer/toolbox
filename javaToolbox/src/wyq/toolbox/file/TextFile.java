@@ -12,7 +12,7 @@ import java.net.URI;
 
 /**
  * <p>
- * 该类扩展自<code>java.io.File</code>并且嵌入了一对读写方法，
+ * 该类扩展自<code>java.io.File</code>并且增加了几对读写方法，
  * 通过这些方法你可以很方便地一次全部读取或者一行行读取一个txt文件的内容。
  * </p>
  * <p>
@@ -33,7 +33,7 @@ import java.net.URI;
  * 
  * // 一次性将内容追加到write_to.txt文件末尾，不需要关闭文件。
  * TextFile txtFile = new TextFile("write_to.txt");
- * txtFile.writeAll(allTxtContent, true); // 设置false来关闭文件。
+ * txtFile.writeAll(allTxtContent, true); // 设置false来覆盖文件。
  * 
  * // 一行一行地写入write_to_line.txt文件，需要在完成后关闭文件
  * TextFile txtFile = new TextFile("write_to_line.txt");

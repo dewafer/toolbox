@@ -1,7 +1,7 @@
 package wyq.toolbox.di;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import static wyq.toolbox.util.LogUtils.logIntentionallyIgnoredCatch;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -32,7 +32,7 @@ import wyq.toolbox.util.RetryLookup.NotFound;
  * <li>如果返回类型是普通类，则尝试实例化这个类，如果无法实例化则返回null。</li>
  * </p>
  * <p>
- * 使用方法请参照{@linkplain wyq.toolbox.util.ObjectDelegatorTest}
+ * 使用方法请参照{@linkplain wyq.toolbox.di.ObjectDelegatorTest}
  * <p>
  * 
  * @author dewafer
@@ -58,14 +58,14 @@ public class ObjectDelegator<T> implements InvocationHandler {
 				return clazz.getMethod(methodName, arguTypes);
 			} catch (NoSuchMethodException | SecurityException e) {
 				// intentionally ignore
-				logIntentionallyIgnoredCatch(e);
+				logIntentionallyIgnoredCatch(log, e);
 			}
 
 			try {
 				return clazz.getDeclaredMethod(methodName, arguTypes);
 			} catch (NoSuchMethodException | SecurityException e) {
 				// intentionally ignore
-				logIntentionallyIgnoredCatch(e);
+				logIntentionallyIgnoredCatch(log, e);
 			}
 
 			return null;
@@ -163,7 +163,7 @@ public class ObjectDelegator<T> implements InvocationHandler {
 		} catch (NotFound | SecurityException | IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException e) {
 			// intentionally ignore
-			logIntentionallyIgnoredCatch(e);
+			logIntentionallyIgnoredCatch(log, e);
 		}
 
 		// 返回结果
@@ -195,19 +195,11 @@ public class ObjectDelegator<T> implements InvocationHandler {
 			result = returnType.newInstance();
 		} catch (IllegalAccessException | InstantiationException | ExceptionInInitializerError e) {
 			// intentionally ignore
-			logIntentionallyIgnoredCatch(e);
+			logIntentionallyIgnoredCatch(log, e);
 		}
 
 		return result;
 
 	}
 
-	private void logIntentionallyIgnoredCatch(Throwable e) {
-		if (!log.isLoggable(Level.FINER)) {
-			return;
-		}
-		StringWriter w = new StringWriter();
-		e.printStackTrace(new PrintWriter(w));
-		log.finer(w.toString());
-	}
 }

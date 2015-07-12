@@ -8,9 +8,9 @@ package wyq.toolbox.db;
  * 
  */
 public interface ConnectionProvider {
-	public abstract String getSqlConnProviderClass();
+	public abstract String getDbDriverClassName();
 
-	public abstract String getConnStr();
+	public abstract String getDbUrlStr();
 
 	public abstract String getUser();
 

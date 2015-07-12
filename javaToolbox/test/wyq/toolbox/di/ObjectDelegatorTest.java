@@ -1,4 +1,4 @@
-package wyq.toolbox.util;
+package wyq.toolbox.di;
 
 import static org.junit.Assert.assertEquals;
 
@@ -27,11 +27,11 @@ public class ObjectDelegatorTest {
 	@Before
 	public void setUp() {
 		// 设置logger
-		Logger logger = Logger.getLogger("wyq.toolbox.di.ObjectDelegator");
+		Logger logger = Logger.getLogger("wyq.toolbox.di");
 		Handler h = new ConsoleHandler();
 		h.setLevel(Level.ALL);
 		logger.addHandler(h);
-		logger.setLevel(Level.FINE);// set ALL to see tracing logs
+		logger.setLevel(Level.FINE);// set FINER to see tracing logs
 	}
 
 	@Test
@@ -55,7 +55,7 @@ public class ObjectDelegatorTest {
 		System.out.println("stmt equals resultSet:" + stmt.equals(resultSet));
 		System.out.println("resultSet equals conn:" + resultSet.equals(conn));
 		
-		// 但奇怪的是却和this对象相等
+		// 但奇怪的是却和this对象相等，知道为什么吗？
 		System.out.println("conn equals this:" + conn.equals(this));
 		System.out.println("stmt equals this:" + stmt.equals(this));
 		System.out.println("resultSet equals this:" + resultSet.equals(this));

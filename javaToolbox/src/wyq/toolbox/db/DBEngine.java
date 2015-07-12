@@ -23,17 +23,48 @@ public class DBEngine {
 
 	protected ConnectionProvider provider;
 
-	public DBEngine(DBEngineHandler handler) {
-		this.handler = handler;
+	public static DBEngine start(String dbDriverClassName, String dbUrl) {
+		return start(dbDriverClassName, dbUrl, null, null);
 	}
 
-	public DBEngine() {
+	public static DBEngine start(String dbDriverClassName, String dbUrl, String username, String password) {
+		return new DBEngine(new ConnectionProvider() {
+
+			@Override
+			public String getDbDriverClassName() {
+				return dbDriverClassName;
+			}
+
+			@Override
+			public String getDbUrlStr() {
+				return dbUrl;
+			}
+
+			@Override
+			public String getUser() {
+				return username;
+			}
+
+			@Override
+			public String getPassword() {
+				return password;
+			}
+		});
+	}
+
+	public DBEngine(ConnectionProvider provider) {
+		this(provider, null);
+	}
+
+	public DBEngine(ConnectionProvider provider, DBEngineHandler handler) {
+		this.provider = provider;
+		this.handler = handler;
 	}
 
 	public void connect() throws ClassNotFoundException, SQLException {
 		if (conn == null || conn.isClosed()) {
-			Class.forName(provider.getSqlConnProviderClass());
-			conn = DriverManager.getConnection(provider.getConnStr(), provider.getUser(), provider.getPassword());
+			Class.forName(provider.getDbDriverClassName());
+			conn = DriverManager.getConnection(provider.getDbUrlStr(), provider.getUser(), provider.getPassword());
 		}
 	}
 
@@ -71,7 +102,7 @@ public class DBEngine {
 		}
 	}
 
-	private void handlerCall(Object o) {
+	private void handlerCall(Object o) throws SQLException {
 		if (handler == null) {
 			return;
 		}
@@ -100,10 +131,6 @@ public class DBEngine {
 
 	public ConnectionProvider getProvider() {
 		return provider;
-	}
-
-	public void setProvider(ConnectionProvider provider) {
-		this.provider = provider;
 	}
 
 	public class DBResult {
